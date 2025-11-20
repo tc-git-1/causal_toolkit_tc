@@ -1,4 +1,3 @@
-# %%
 """
 Assignment 4
 
@@ -105,30 +104,12 @@ class DataGenerator:
 
         return train, test
 
-"""
-General Tips
-1. Use LGBMRegressor() for all regression models (default parameters are fine)
-2. Use LogisticRegression(penalty=None) for propensity score estimation
-3. Return test DataFrame with added 'cate' column
+# General Tips
+# 1. Use LGBMRegressor() for all regression models (default parameters are fine)
+# 2. Use LogisticRegression(penalty=None) for propensity score estimation
+# 3. Return test DataFrame with added 'cate' column
 
-"""        
 
-# %%
-# Generate data examples
-
-# Initialize data generator
-gen = DataGenerator()
-
-# Discrete, constant TE
-train_simple, test_simple = gen.simple_data()
-
-# Discrete, heterogeneous TE
-train_het, test_het = gen.heterogeneous_data()
-
-# Continuous treatment
-train_cont, test_cont = gen.continuous_treatment_data()
-
-# %%
 """
 Task 1: Implement s_learner_discrete(train, test, X, T, y)
 
@@ -216,11 +197,7 @@ def s_learner_discrete(train: pd.DataFrame,
     out["cate"] = cate # Add CATE column
     return out # Return the modified test DataFrame
 
-# Example use:
-test_simple_with_cate = s_learner_discrete(train_simple, test_simple, X=['x1', 'x2'], T='t', y='y')
-print(f"CATE simple:\n{test_simple_with_cate['cate'].describe()}")
 
-# %%
 """
 Task 2: Implement t_learner_discrete(train, test, X, T, y)
 Function Signature:
@@ -305,11 +282,7 @@ def t_learner_discrete(train: pd.DataFrame,
 
     return test_copy
 
-# Example use:
-test_het_with_cate = t_learner_discrete(train_het, test_het, X=['x1', 'x2'], T='t', y='y')
-print(f"CATE heterogeneous:\n{test_het_with_cate['cate'].describe()}")
 
-# %%
 """
 Task 3: Implement x_learner_discrete(train, test, X, T, y)
 
@@ -414,20 +387,7 @@ def x_learner_discrete(train: pd.DataFrame,
     out["cate"] = cate
     return out
 
-# Example use:
-test_het_with_cate_x = x_learner_discrete(train_het, test_het, X=['x1', 'x2'], T='t', y='y')
-print(f"CATE heterogeneous X-Learner:\n{test_het_with_cate_x['cate'].describe()}")
 
-
-# Simulate imbalance
-# Create imbalance by downsampling treated units in training set
-treated_idx = train_het[train_het["t"] == 1].sample(frac=0.3, random_state=7).index
-train_imbal = pd.concat([train_het[train_het["t"] == 0], train_het.loc[treated_idx]])
-
-pred_imbal = x_learner_discrete(train_imbal, test_het, X=['x1', 'x2'], T='t', y='y', reweight_first_stage=True)
-print("Mean CATE under imbalance:", pred_imbal["cate"].mean())  
-
-# %%
 """
 Task 4: Implement double_ml_cate(train, test, X, T, y)
 Function Signature:
@@ -516,7 +476,3 @@ def double_ml_cate(train: pd.DataFrame,
     test_copy = test.copy()
     test_copy['cate'] = cate_pred
     return test_copy
-
-# Example use:
-test_cont_with_cate = double_ml_cate(train_cont, test_cont, X=['x1', 'x2'], T='t', y='y')
-print(f"CATE continuous:\n{test_cont_with_cate['cate'].describe()}")

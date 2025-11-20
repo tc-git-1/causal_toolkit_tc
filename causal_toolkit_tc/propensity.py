@@ -1,4 +1,3 @@
-# %% [markdown]
 # Assignment 3
 # 
 # Overview
@@ -15,55 +14,7 @@
 # T	Treatment assignment (1 = treatment, 0 = control)  
 # Y	Outcome (the variable being measured)  
 
-# %%
 
-
-# %%
-# Generate df_test_1
-
-# Here is the code to generate two of the sample data sets that are going to be used by Gradescope:  
-import numpy as np
-import pandas as pd
-
-# Test 1: IPW with simple positive treatment effect
-np.random.seed(42)
-n = 1000
-
-# Generate data with known ATE = 2
-x = np.random.normal(0, 1, n)
-prob_t = 1 / (1 + np.exp(-(0.5 * x)))
-t = np.random.binomial(1, prob_t, n)
-y = 2 * t + x + np.random.normal(0, 0.5, n)
-
-df_test_1 = pd.DataFrame({'x': x, 't': t, 'y': y})
-
-# Review the generated dataframe
-print("df_test_1:")
-df_test_1.head()
-
-# %%
-# Generate df_test_5
-
-# Test 5: IPW with categorical covariate
-np.random.seed(101)
-n = 1000
-
-# Generate data with categorical confounder
-group = np.random.choice(['A', 'B', 'C'], n)
-group_effect = {'A': 0, 'B': 1, 'C': 2}
-x_numeric = np.array([group_effect[g] for g in group])
-
-prob_t = 1 / (1 + np.exp(-(0.5 * x_numeric)))
-t = np.random.binomial(1, prob_t, n)
-y = 2.0 * t + x_numeric + np.random.normal(0, 0.5, n)
-
-df_test_5 = pd.DataFrame({'group': group, 't': t, 'y': y})
-
-# Review the generated dataframe
-print("\ndf_test_5:")
-df_test_5.head()
-
-# %%
 """
 Task 1: Implement ipw(df, ps_formula, T, Y)
 Calculate the Average Treatment Effect using Inverse Propensity Weighting.
@@ -96,6 +47,7 @@ Fit propensity score model using LogisticRegression(penalty=None, max_iter=1000)
 Get propensity scores: ps = model.predict_proba(X)[:, 1]
 Calculate ATE using the IPW formula
 """
+import pandas as pd
 
 def ipw(df: pd.DataFrame, ps_formula: str, T: str, Y: str) -> float:
     from patsy import dmatrix
@@ -125,25 +77,6 @@ def ipw(df: pd.DataFrame, ps_formula: str, T: str, Y: str) -> float:
 
     return ate
 
-# Example use
-df = pd.DataFrame({
-    'treatment': [0, 1, 0, 1, 1],
-    'outcome': [1.0, 2.5, 1.2, 2.8, 3.0],
-    'age': [25, 30, 35, 40, 28]
-})
-
-# Calculate IPW ATE using df_test_1
-ate = ipw(df = df_test_1, ps_formula = "x", T = "t", Y = "y")
-print(f"df_test_1 Estimated ATE : {ate}")
-
-# Calculate IPW ATE using df_test_5
-ate = ipw(df = df_test_5, ps_formula = "group", T = "t", Y = "y")
-print(f"df_test_5 Estimated ATE : {ate}") 
-
-# %%
-
-
-# %%
 """
 Task 2: Implement doubly_robust(df, formula, T, Y)
 Calculate the Average Treatment Effect using Doubly Robust Estimation.
@@ -224,11 +157,3 @@ def doubly_robust(df: pd.DataFrame, formula: str, T: str, Y: str) -> float:
     # 6. Calculate ATE using the DR formula
     dr_ate = np.mean(mu_1 - mu_0 + (T_series * (Y_series - mu_1) / ps) - ((1 - T_series) * (Y_series - mu_0) / (1 - ps)))
     return(dr_ate)
-
-# Calculate doubly robust ATE using df_test_1
-ate = doubly_robust(df = df_test_1, formula = "x", T = "t", Y = "y")
-print(f"df_test_1 Doubly Robust Estimated ATE : {ate}")
-
-# Calculate doubly robust ATE using df_test_5
-ate = doubly_robust(df = df_test_5, formula = "group", T = "t", Y = "y")
-print(f"df_test_5 Doubly Robust Estimated ATE : {ate}")
