@@ -15,6 +15,6 @@ A Python package for causal inference methods including ATE estimation, propensi
 
 ## ✅ Installation
 ```bash
-git clone https://github.com/yourusername/causal_toolkit_tc.git
+git clone https://github.com/tc-git-1/causal_toolkit_tc.git
 cd causal_toolkit_tc
 uv pip install -e ".[dev]"

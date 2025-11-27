@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "causal-toolkit-yourname"
+name = "causal-toolkit-tc"
 version = "0.1.0"
 description = "A Python package for causal inference methods including ATE estimation, propensity score methods, and meta-learners"
 readme = "README.md"
@@ -45,10 +45,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/causal-toolkit-yourname"
-Documentation = "https://github.com/yourusername/causal-toolkit-yourname#readme"
-Repository = "https://github.com/yourusername/causal-toolkit-yourname"
-"Bug Tracker" = "https://github.com/yourusername/causal-toolkit-yourname/issues"
+Homepage = "https://github.com/causal-toolkit-tc/causal-toolkit-tc"
+Documentation = "https://github.com/causal-toolkit-tc/causal-toolkit-tc#readme"
+Repository = "https://github.com/causal-toolkit-tc/causal-toolkit-tc"
+"Bug Tracker" = "https://github.com/causal-toolkit-tc/causal-toolkit-tc/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
