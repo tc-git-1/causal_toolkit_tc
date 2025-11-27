@@ -1,3 +1,5 @@
+[![Tests](https://github.com/tc-git-1/causal_toolkit_tc/workflows/Tests/badge.svg)](https://github.com/tc-git-1/causal_toolkit_tc/actions)
+
 # causal_toolkit_tc
 
 A Python package for causal inference methods including ATE estimation, propensity score methods, and meta-learners.
