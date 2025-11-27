@@ -1,9 +1,8 @@
-[![Tests](https://github.com/tc-git-1/causal_toolkit_tc/workflows/Tests/badge.svg)](https://github.com/tc-git-1/causal_toolkit_tc/actions)
-
 # causal_toolkit_tc
+[![Tests](https://github.com/tc-git-1/causal_toolkit_tc/workflows/Tests/badge.svg)](https://github.com/tc-git-1/causal_toolkit_tc/actions)
+[![PyPI version](https://badge.fury.io/py/causal_toolkit_tc.svg)](https://pypi.org/project/causal_toolkit_tc/)
 
-A Python package for causal inference methods including ATE estimation, propensity score methods, and meta-learners.
-
+A Python package for causal inference methods including ATE estimation, propensity scores, and meta-learners.
 ---
 
 ## 📦 Features
