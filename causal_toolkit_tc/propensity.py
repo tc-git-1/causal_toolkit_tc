@@ -47,11 +47,13 @@ Fit propensity score model using LogisticRegression(penalty=None, max_iter=1000)
 Get propensity scores: ps = model.predict_proba(X)[:, 1]
 Calculate ATE using the IPW formula
 """
+import numpy as np
 import pandas as pd
+from patsy import dmatrix
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression
 
 def ipw(df: pd.DataFrame, ps_formula: str, T: str, Y: str) -> float:
-    from patsy import dmatrix
-    from sklearn.linear_model import LogisticRegression
 
     # 1. Convert formula to design matrix using patsy.dmatrix(ps_formula, df)
     X = dmatrix(ps_formula, df)
@@ -129,9 +131,6 @@ def doubly_robust(df: pd.DataFrame, formula: str, T: str, Y: str) -> float:
     float: The estimated ATE
     """
 
-    from patsy import dmatrix
-    from sklearn.linear_model import LogisticRegression
-
     # 1. Convert formula to design matrix using patsy.dmatrix(formula, df)
     X = dmatrix(formula, df)
 
@@ -143,7 +142,6 @@ def doubly_robust(df: pd.DataFrame, formula: str, T: str, Y: str) -> float:
     ps = pd.Series(ps_model.predict_proba(X)[:, 1]) # Get propensity scores
 
     # 3. Fit outcome model for control group: LinearRegression().fit(X[T==0], Y[T==0])
-    from sklearn.linear_model import LinearRegression
     outcome_model_control = LinearRegression() # Initialize model
     outcome_model_control.fit(X[T_series==0], Y_series[T_series==0]) # Fit model
 
