@@ -33,9 +33,6 @@ pip install -e ".[dev]"
 
 Here are examples for every function in the package.
 
-### Data Generation
-First, let's create a sample dataset that simulates an observational study (with confounders) and a continuous treatment dataset for Double ML.
-
 ```python
 import pandas as pd
 import numpy as np
@@ -45,7 +42,7 @@ from causal_toolkit_tc.meta_learners import (
     s_learner_discrete, t_learner_discrete, x_learner_discrete, double_ml_cate
 )
 
-# 1. Generate Binary Treatment Data (for RCT, Propensity, S/T/X Learners)
+# Generate Binary Treatment Data (for RCT, Propensity, S/T/X Learners)
 np.random.seed(42)
 n = 1000
 df = pd.DataFrame({
@@ -58,7 +55,7 @@ df = pd.DataFrame({
 # True ATE = 2.0
 df['Y'] = 2*df['T'] + 0.05*df['age'] + 0.001*df['income'] + np.random.normal(0, 1, n)
 
-# 2. Generate Continuous Treatment Data (for Double ML)
+# Generate Continuous Treatment Data (for Double ML)
 df_cont = df.copy()
 df_cont['T_cont'] = np.random.normal(5, 2, n) # Continuous Treatment
 # True ATE = 1.5
@@ -137,42 +134,83 @@ print(f"Double ML Average CATE: {res_dml['cate'].mean():.3f}")
 ## 📚 API Reference
 
 ### 1. Randomized Controlled Trials (`causal_toolkit_tc.rct`)
-Functions for analyzing standard A/B tests.
 
-- **`calculate_ate_ci(data)`**
-  - Calculates the Average Treatment Effect (ATE) and 95% Confidence Intervals.
-  - **Input:** DataFrame with columns `T` (treatment) and `Y` (outcome).
-  - **Returns:** `(ate, ci_lower, ci_upper)`
+#### `calculate_ate_ci(data)`
+Calculates the Average Treatment Effect (ATE) and a 95% confidence interval using a simple difference-in-means estimator.
 
-- **`calculate_ate_pvalue(data)`**
-  - Calculates the ATE along with the t-statistic and p-value for hypothesis testing.
-  - **Input:** DataFrame with columns `T` (treatment) and `Y` (outcome).
-  - **Returns:** `(ate, t_stat, p_value)`
+- **Assumptions:**
+  - Treatment is **randomly assigned** (no confounding).  
+  - Treatment is **binary** (0/1).  
+  - Outcomes are **independent** across units.  
+
+- **Input:** DataFrame with columns:
+  - `T` — binary treatment indicator
+  - `Y` — outcome
+- **Returns:** `(ate, ci_lower, ci_upper)`
+
+#### `calculate_ate_pvalue(data)`
+Computes the ATE along with the t-statistic and p-value for testing the null hypothesis that **ATE = 0**.
+
+- **Assumptions:** Same as `calculate_ate_ci`
+- **Input:** DataFrame with columns `T` (treatment) and `Y` (outcome)
+- **Returns:** `(ate, t_stat, p_value)`
+
+---
 
 ### 2. Propensity Score Methods (`causal_toolkit_tc.propensity`)
-Methods for observational data to adjust for confounding variables.
 
-- **`ipw(df, ps_formula, T, Y)`**
-  - Estimates ATE using **Inverse Propensity Weighting**.
-  - **Input:** `df` (data), `ps_formula` (e.g., "age + income"), `T` (col name), `Y` (col name).
-  - **Returns:** Estimated ATE (float).
+#### `ipw(df, ps_formula, T, Y)`
+Estimates the ATE using **Inverse Propensity Weighting (IPW)**, where the propensity score is estimated using a logistic model.
 
-- **`doubly_robust(df, ps_formula, T, Y)`**
-  - Estimates ATE using a **Doubly Robust** estimator (combines IPW with a regression model). More stable than IPW alone.
-  - **Input:** `df` (data), `ps_formula` (e.g., "age + income"), `T` (col name), `Y` (col name).
-  - **Returns:** Estimated ATE (float).
+- **Assumptions:**
+  - **Ignorability / unconfoundedness:** All confounders affecting treatment and outcome are observed.  
+  - **Positivity / overlap:** Every unit has a non-zero probability of receiving either treatment.  
+  - Correct specification of the propensity score model improves accuracy.
+
+- **Input:**
+  - `df` — DataFrame
+  - `ps_formula` — RHS formula (e.g., `"age + income"`)
+  - `T` — treatment column name
+  - `Y` — outcome column name
+- **Returns:** Estimated ATE (float)
+
+#### `doubly_robust(df, ps_formula, T, Y)`
+Estimates the ATE using a **Doubly Robust estimator**, combining IPW with an outcome regression model.
+
+- **Assumptions:**
+  - Same as IPW.
+  - Consistency holds if **either** the propensity model or the outcome regression model is correctly specified.
+
+- **Input:** Same as above
+- **Returns:** Estimated ATE (float)
+
+---
 
 ### 3. Meta-Learners (`causal_toolkit_tc.meta_learners`)
-Machine learning methods for estimating Heterogeneous Treatment Effects (CATE).
+Machine-learning estimators for heterogeneous treatment effects (CATE). 
 
-- **`s_learner_discrete(train, test, X, T, y)`**
-  - **S-Learner (Single):** Uses a single regression model with treatment as a feature.
-  
-- **`t_learner_discrete(train, test, X, T, y)`**
-  - **T-Learner (Two):** Fits two separate models (one for treated units, one for control).
+**Assumptions for Meta-Learners:**
+- Treatment is **unconfounded** given observed covariates.  
+- There is sufficient **overlap**: for each combination of covariates, there is a non-zero probability of receiving either treatment.  
+- Models are **correctly specified or flexible enough** to capture treatment and outcome relationships.  
+- Functions with the suffix `_discrete` are designed specifically for **binary treatments** (0 or 1).
 
-- **`x_learner_discrete(train, test, X, T, y)`**
-  - **X-Learner:** A multi-stage learner best suited for unbalanced treatment groups (e.g., when the control group is much larger).
+#### `s_learner_discrete(train, test, X, T, y)`
+**S-Learner:** Fits a single predictive model that includes treatment as a feature.
 
-- **`double_ml_cate(train, test, X, T, y)`**
-  - **Double ML:** Uses residualization (two-stage regression) to isolate the treatment effect. Best for continuous treatments or complex confounding.
+- **Returns:** A copy of the `test` DataFrame with a new column `cate` (estimated conditional treatment effect).
+
+#### `t_learner_discrete(train, test, X, T, y)`
+**T-Learner:** Trains two separate models—one for treated units and one for controls—and computes CATE as the difference in predicted outcomes.
+
+- **Returns:** A copy of the `test` DataFrame with a new column `cate`.
+
+#### `x_learner_discrete(train, test, X, T, y)`
+**X-Learner:** A multi-stage procedure designed for **unbalanced treatment groups** (when either treatment or control groups are much larger). It imputes missing potential outcomes and learns treatment effects using weighted models.
+
+- **Returns:** A copy of the `test` DataFrame with a new column `cate`.
+
+#### `double_ml_cate(train, test, X, T, y)`
+**Double Machine Learning (DML):** Uses orthogonalization and cross-fitting to isolate the treatment effect. Works for both **binary and continuous** treatments and is appropriate in settings with high-dimensional confounding.
+
+- **Returns:** A copy of the `test` DataFrame with a new column `cate`.
